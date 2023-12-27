@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Solar Eclipse Map</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        
+        #map {
+            z-index: 1;
+            position: absolute;
+            height: 100vh;
+            width: 100vw;
+        }
+        body{
+            padding:0px;
+            margin:0px;
+        }
+        #overlayCanvas{
+            position: absolute;
+            z-index: 100;
+            pointer-events: none;
+        }
+        #data{
+            position: absolute;
+            z-index:100;
+            top: 10px;
+            margin-left: 75px;
+            background-color: rgba(255,255,255,.5);
+            border-radius: 10px;
+        }
+        .dataLabel{
+            text-align: right;
+        }
+        #alphatag{
+            position: absolute;
+            z-index:100;
+            background-color: red;
+            color: white;
+            left: 50%;
+            -webkit-transform: translateX(-50%);
+            transform: translateX(-50%);
+            visibility: hidden;
+        }
+        .duration{
+            font-size: 2em;
+            font-weight: bold;
+        }
+        #mapselectdiv{
+            padding: 10px;
+            border-radius: 10px;
+            position: fixed;
+            bottom: 10px;
+            left: 75px;
+            z-index: 100;
+            background-color: rgba(255,255,255,.75);
+            border:solid black;
+        }
+
+        @media screen and (max-width:800px){
+            #data{
+                font-size: .5em;
+            }
+        }
+
+        @media screen and (max-height:500px){
+            #data{
+                font-size: .5em;
+            }
+        }
+
+        .loadingSpinner {
+            width: 1em;
+            height: 1em;
+            border: 2px solid #000;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: loadingSpinnerRotate 1s linear infinite;
+        }
+
+        @keyframes loadingSpinnerRotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        } 
+    </style>
+</head>
+<body>
+    <div id="alphatag">Alpha application under active development, will contain bugs.</div>
+    <div id="map"></div>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+    crossorigin=""/>
+    
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+        integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+        crossorigin=""></script>
+    <script src="https://www.webglearth.com/v2/api.js"></script>
+    
+    <canvas id="overlayCanvas"></canvas>
+    <div id="mapselectdiv">
+        <img id="setMapImg" src="images/map.png">
+        <img id="setSatImg" src="images/satellite.png">
+        <img id="setTopoImg" src="images/topo.png">
+        <img id="setBwMapImg" src="images/bwmap.png">
+    </div>
+    <div id="data">
+        <table id="localCircumstancesTable">
+            <tr><td class="dataLabel">Time Zone:</td><td><select id="timeZoneSelect"></select></td></tr>
+            <tr><td class=dataLabel>Lat:</td><td class=dataField></td></tr>
+            <tr><td class=dataLabel>Lon:</td><td class=dataField></td></tr>
+            <tr><td class=dataLabel>Sun Alt:</td><td class=dataField></td></tr>
+            <tr><td class=dataLabel>Magnitude:</td><td class=dataField></td></tr>
+            <tr><td class=dataLabel>Partial Start:</td><td class=dataField></td></tr>
+            <tr><td class=dataLabel>Partial End:</td><td class=dataField></td></tr>
+            <tr><td class=dataLabel>Partial Duration:</td><td class=dataField></td></tr>
+            <tr><td class=dataLabel>Totality Start:</td><td class=dataField></td></tr>
+            <tr><td class=dataLabel>Maximum Eclipse:</td><td class=dataField></td></tr>
+            <tr><td class=dataLabel>Totality End:</td><td class=dataField></td></tr>
+            <tr><td class=dataLabel>Totality Duration:</td><td class="dataField duration"></td></tr>
+        </table>
+        <br>
+        <div id="userControls">
+            <center>
+            <input type=button id="clearMarkersButton" value="Clear Markers"><br>
+            <label for="showDurationLinesCheckbox">Show Duration Lines</label><input type=checkbox id="showDurationLinesCheckbox" style="visibility: hidden;" checked><span id='durationLinesLoadingSpinner' class="loadingSpinner"></span>
+            </center>
+        </div>
+    </div>
+
+
+<script type="module">
+/*
+Greg Miller gmiller@gregmiller.net 2022
+Released as public domain
+*/
+L=WE;
+import {getElementCoeffs,getLocalCircumstances} from "./eclipse.js";
+import {computeCentralLatLonForTime, getExtremePoints, getEclipseCenter, getTotalityLimitsByLongitudeList, getPartialLimitsByLogitudeList} from "./eclipse.js";
+import {convertTDBToUTC,hoursToTime,prettyTime} from "./astro.js";
+import {drawOverlay} from "./overlay.js";
+
+populateTimeZones();
+
+const canvas=document.getElementById("overlayCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+let markerList=[];
+let lineList=[];
+let durationLines=[];
+
+var map = WE.map('map');
+//map.setView([38.2738, -86.4147], 5);
+let mapURL="https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+let mapAttrib='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+let airialURL="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+let airialAttrib="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+let mapLayer=WE.tileLayer(mapURL,{attribution: mapAttrib})
+let airialLayer=L.tileLayer(airialURL,{
+    attribution: airialAttrib,
+    maxNativeZoom:19,
+        maxZoom:25
+});
+
+var OpenTopoMapLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+	maxZoom: 25,
+	attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+});
+
+var Esri_WorldGrayCanvas = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+    maxNativeZoom:16,
+	maxZoom: 25
+});
+
+/*
+TODO: Many more map styles at:
+https://leaflet-extras.github.io/leaflet-providers/preview/
+*/
+
+const eclipseData=computeEclipseData();
+mapLayer.addTo(map);
+//map.addLayer(mapLayer);
+
+// Add in a crosshair for the map
+var crosshairIcon = L.icon({
+    iconUrl: 'images/circle site.png',
+    iconSize:     [20, 20], // size of the icon
+    iconAnchor:   [10, 10], // point of the icon which will correspond to marker's location
+});
+
+const p=map.getCenter();
+const crosshairs=L.marker(p,{icon:crosshairIcon}).addTo(map);
+
+map.on('move', updateDisplay, this);
+map.on('click', mapClick,this);
+
+updateDisplay(null);
+
+function mapClick(e){
+    const p=e.latlng;
+    const c=getLocalCircumstances(p.lat, p.lng,0);
+    let s="Not Total";
+    if(c.UTThirdContact-c.UTSecondContact>0) s=prettyTime(c.UTThirdContact-c.UTSecondContact);
+
+    let m=L.marker(p);
+    m.addTo(map).bindTooltip(s, {permanent: true});
+
+    markerList.push(m);
+    if(markerList.length>1){
+        const t=markerList[markerList.length-2];
+        let dist=(t.getLatLng().distanceTo(m.getLatLng()) * 0.0006213712);
+
+        if(dist<.25){
+            dist=Math.floor(dist*5280)+"ft";
+        } else {
+            dist=dist.toFixed(2)+"mi";
+        }
+        
+        const line=new L.Polyline([t.getLatLng(),m.getLatLng()], {color: 'black', weight: 1});
+        line.addTo(map);
+        line.bindTooltip(dist, {permanent: true});
+        line.openTooltip();
+        lineList.push(line);
+
+    }
+}
+
+function removeAllMapLayers(){
+    map.removeLayer(mapLayer);
+    map.removeLayer(airialLayer);
+    map.removeLayer(OpenTopoMapLayer);
+    map.removeLayer(Esri_WorldGrayCanvas);
+}
+
+function setMap(){
+    removeAllMapLayers();
+    map.addLayer(mapLayer);
+}
+
+function setSat(){
+    removeAllMapLayers();
+    map.addLayer(airialLayer);
+}
+
+function setTopo(){
+    removeAllMapLayers();
+    map.addLayer(OpenTopoMapLayer);
+}
+
+function setBwMap(){
+    removeAllMapLayers();
+    map.addLayer(Esri_WorldGrayCanvas);
+}
+
+function getTimeZone(){
+    const e=document.getElementById("timeZoneSelect");
+    const o=e.options[e.selectedIndex];
+    return {offset: o.value-0, name: o.text};
+}
+
+function displayLocalCircumstances(){
+    const tz=getTimeZone();
+    const p=map.getCenter();
+    const c=getLocalCircumstances(p.lat, p.lng,0);
+    const t=document.getElementById("localCircumstancesTable");
+    t.rows[1].cells[1].innerHTML=(p.lat-0).toFixed(4);
+    t.rows[2].cells[1].innerHTML=(p.lng-0).toFixed(4);
+    t.rows[3].cells[1].innerHTML=(c.h-0).toFixed(1);
+    t.rows[4].cells[1].innerHTML=(c.mag*100).toFixed(1)+"%";
+    if(c.mag>0){
+        t.rows[5].cells[1].innerHTML=hoursToTime(c.UTFirstContact,tz);
+        t.rows[6].cells[1].innerHTML=hoursToTime(c.UTLastContact,tz);
+        t.rows[7].cells[1].innerHTML=prettyTime(c.UTLastContact-c.UTFirstContact);
+    } else {
+        t.rows[5].cells[1].innerHTML="";
+        t.rows[6].cells[1].innerHTML="";
+        t.rows[7].cells[1].innerHTML="";
+    }
+
+    if(c.mag>=1){
+        t.rows[8].cells[1].innerHTML=hoursToTime(c.UTSecondContact,tz);
+        t.rows[10].cells[1].innerHTML=hoursToTime(c.UTThirdContact,tz);
+        t.rows[11].cells[1].innerHTML=prettyTime(c.UTThirdContact-c.UTSecondContact);
+    } else {
+        t.rows[8].cells[1].innerHTML="";
+        t.rows[10].cells[1].innerHTML="";
+        t.rows[11].cells[1].innerHTML="";
+    }
+    t.rows[9].cells[1].innerHTML=hoursToTime(c.UTMaximum,tz);
+}
+
+function updateDisplay(e){
+    const t=displayLocalCircumstances();
+    crosshairs.setLatLng(map.getCenter());
+    drawOverlay(ctx,map,eclipseData);
+}
+
+function computeCentralCurve(e,begin,end){
+
+    let a=new Array();
+    let i=begin;
+    while(i<=end+.1){
+        const p=computeCentralLatLonForTime(e,i);
+        if(p!=null && p.lat!=null && p.lon!=null && !isNaN(p.lat) && !isNaN(p.lon)){
+            a.push(new L.LatLng(p.lat,p.lon));
+        }
+        i+=.0001;
+    }
+    return a;
+}
+
+function computeEclipseData(){
+    const e=getElementCoeffs();
+    const extremes=getExtremePoints(e);
+    const begin=e.T0+extremes.begin.t-e.Δt/60/60;
+    const end=e.T0+extremes.end.t-e.Δt/60/60;
+
+    const centralCurve=computeCentralCurve(e,begin,end);
+
+    const startLon=extremes.begin.λ;
+    const endLon=extremes.end.λ;
+
+    const north=new Array();
+    getTotalityLimitsByLongitudeList(e,1,startLon,endLon)[0].forEach(el => {if(el!=null) north.push(new L.LatLng(el.lat,el.lon))});
+
+    const south=new Array();
+    getTotalityLimitsByLongitudeList(e,-1,startLon,endLon)[0].forEach(el => {if(el!=null) south.push(new L.LatLng(el.lat,el.lon))});
+
+    const northP=new Array();
+    getPartialLimitsByLogitudeList(e,1,startLon,endLon)[0].forEach(el => {if(el!=null) northP.push(new L.LatLng(el.lat,el.lon))});
+    
+    const southP=new Array();
+    getPartialLimitsByLogitudeList(e,-1,startLon,endLon)[0].forEach(el => {if(el!=null) southP.push(new L.LatLng(el.lat,el.lon))});
+
+    const centerPoint=getEclipseCenter(e);
+
+    let eclipseData={};
+    eclipseData.e=e;
+    eclipseData.extremes=extremes;
+    eclipseData.beginTime=begin;
+    eclipseData.endTime=end;
+    eclipseData.centralCurve=centralCurve;
+    eclipseData.northTotalityLimits=north;
+    eclipseData.southTotalityLimits=south;
+    eclipseData.northPartialLimits=northP;
+    eclipseData.southPartialLimits=southP;
+    eclipseData.centerPoint=centerPoint;
+    eclipseData.durationLines=null;
+
+    const backgroundWorker=new Worker("backgroundworker.js",{type: "module"});
+    backgroundWorker.addEventListener("message",workerMessage);
+    backgroundWorker.postMessage(eclipseData);
+
+    return eclipseData;
+}
+
+function workerMessage(e){
+    const lines=e.data;
+    eclipseData.durationLines=lines;
+    document.getElementById("durationLinesLoadingSpinner").classList.remove("loadingSpinner");
+    document.getElementById("showDurationLinesCheckbox").style.visibility="visible";
+    updateDisplay();
+}
+
+function clearMarkers(e){
+    for(let i=0;i<markerList.length;i++){
+        map.removeLayer(markerList[i]);
+    }
+    for(let i=0;i<lineList.length;i++){
+        map.removeLayer(lineList[i]);
+    }
+    markerList=[];
+    lineList=[];
+}
+
+function durationLinesCheck(){
+    updateDisplay();
+}
+
+function populateTimeZones(){
+    const date=new Date(2024,4,8);
+    const tz=-(date.getTimezoneOffset()/60);
+    const e=document.getElementById("timeZoneSelect");
+    for(let i=-11;i<=14;i++){
+        const o=document.createElement("option");
+        o.value=i;
+        if(i>=0){
+            o.text="UTC + "+i;
+        } else {
+            o.text="UTC - "+Math.abs(i);
+        }
+        if(i==tz) o.selected="selected";
+        e.add(o,null);
+    }
+
+}
+
+document.getElementById("setMapImg").addEventListener("click",setMap);
+document.getElementById("setSatImg").addEventListener("click",setSat);
+document.getElementById("setTopoImg").addEventListener("click",setTopo);
+document.getElementById("setBwMapImg").addEventListener("click",setBwMap);
+document.getElementById("clearMarkersButton").addEventListener("click",clearMarkers);
+document.getElementById("showDurationLinesCheckbox").addEventListener("click",durationLinesCheck);
+document.getElementById("timeZoneSelect").addEventListener("input",updateDisplay);
+</script>
+</body>
+</html>

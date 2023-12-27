@@ -1,0 +1,15 @@
+Get Actual start and end times of partial eclipse
+get actual extreme points of penumbra and umbra lines
+Location button on map
+Countdown timer
+-beep alarm
+Real time display
+Allow link to location and time (and Time Zone)
+Rise and set curves need to account for Earth flattening
+Get actual start and end angles for shadow outlines
+Maximum eclipse location is wrong
+"Lock Location" button as alternative to "get location"
+Remember user's location in local storage
+Search for major cities
+Weather
+Window resize doesn't work well - Appears to be an issue with map bounds checking
