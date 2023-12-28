@@ -156,6 +156,7 @@ function getElements(e,t,Φ,λ,height){
     o.M=e.M0 + e.M1*t;
     o.Xp=e.X1 + 2*e.X2*t + 3*e.X3*t*t;
     o.Yp=e.Y1 + 2*e.Y2*t + 3*e.Y3*t*t;
+    o.Mp=e.M1;
     o.L1=e.L10 + e.L11*t + e.L12*t*t;
     o.L2=e.L20 + e.L21*t + e.L22*t*t;
     o.tanf1=e.tanf1;
@@ -443,7 +444,7 @@ export function getExtremePoints(e){
     return {begin: beginCircumstances, end: endCircumstances};
 }
 
-export function getEclipseCenter(e){
+export function getLatLonEclipseAtNoon(e){
     let t=0;
     for(let i=0;i<20;i++){
         t= - (e.X0 + t*t*(e.X2 + t*e.X3))/e.X1;
@@ -639,6 +640,38 @@ function computeOutlinePoint(be,Q,umbra){
     return {lat: ϕ, lon: -λ};
 }
 
+function propperAngle(d){
+    //return d;
+    let t=d;
+    if(t<0){t+=360;}
+    if(t>=360) {t-=360;}
+    return t;
+}
+
+function getOutlineCurveQRange(be,l){
+    //Exp Sup 1961
+    const msq=be.x*be.x + be.y*be.y; //Derived from x=mSinM, y=mCosM p228
+    const m=Math.sqrt(msq);
+    const tanM=be.x/be.y; //Derived from x=mSinM, y=mCosM p228
+    const M=Math.atan2(be.x,be.y);
+    const denom=2*l*m;
+    const numer=m*m + l*l - 1;
+    const cosQM=(m*m + l*l - 1)/(2*l*m);
+    let Q1=propperAngle((Math.acos(cosQM)+M)/rad); 
+    let Q2=propperAngle((-Math.acos(cosQM)+M)/rad); 
+
+    //TODO: This probably only works for the 2024 eclipse
+    if(isNaN(Q1) || isNaN(Q2)){
+        Q2=0;
+        Q1=360;
+    }
+
+    if(Q1<Q2) Q1+=360;
+
+    return {start: Q2, end: Q1};
+}
+
+
 export function computeOutlineCurve(t){
     const el=getElementCoeffs();
     const be={};
@@ -658,11 +691,36 @@ export function computeOutlineCurve(t){
     be.Δt=el.Δt;
     be.H = be.μ - 0.00417807 * be.Δt;
 
+    const prange=getOutlineCurveQRange(be,be.l1);
+    const urange=getOutlineCurveQRange(be,be.l2);
+
     const penumbra=new Array();
     const umbra=new Array();
     
-    for(let i=0;i<360;i+=.1){
+    let p=computeOutlinePoint(be,prange.start,false);
+    let i=0;
+    while(!isNaN(p.lat) && !isNaN(p.lon) && i<.1){
+        p=computeOutlinePoint(be,prange.start+i,false);
+        i+=.01;
+    }
+    penumbra.push(p);
+    if(i>1)console.log("Here");
+
+    for(let i=prange.start;i<prange.end;i+=.1){
         penumbra.push(computeOutlinePoint(be,i,false));
+    }
+    p=computeOutlinePoint(be,prange.end,false);
+    i=0;
+    while(!isNaN(p.lat) && !isNaN(p.lon) && i<.1){
+        p=computeOutlinePoint(be,prange.end-i,false);
+        i+=.01;
+    }
+    penumbra.push(p);
+    if(i>1)console.log("Here");
+
+    penumbra.push(computeOutlinePoint(be,prange.end-.25,false));
+
+    for(let i=0;i<360;i+=.1){
         umbra.push(computeOutlinePoint(be,i,true));
     }
     
@@ -765,4 +823,69 @@ function computeRiseSetPoint(be,γ){
 
     return {lat: ϕ/rad, lon: (λ<=Math.PI) ? λ/rad : λ/rad-360};
 
+}
+
+export function getMaxEclipseAtRiseSetPoints(){
+    let t=-4;
+    const list=new Array();
+    while(t<4){
+        const e=getElementCoeffs();
+        const be=getElements(e,t,0,0,0);
+        list.push(getMaxEclipseAtRiseSetPoint(be));
+        t+=.01;
+    }
+
+    return list;
+}
+
+function getΔ(Q,be){
+    const sinγQ=be.X*Math.cos(Q) - be.Y*Math.sin(Q);
+    const γQ=Math.asin(sinγQ);
+    const γ=γQ+Q;
+    const ξ=Math.sin(γ);
+    const η=Math.cos(γ)
+    const xξ=be.X-ξ;
+    const yη=be.Y-η;
+    const Δ=Math.sqrt(xξ*xξ + yη*yη);
+    return Δ;
+}
+
+function getMaxEclipseAtRiseSetPoint(be){
+    //From Exp Sup 1961 P231
+    const sind=Math.sin(be.d*rad);
+    const cosd=Math.cos(be.d*rad);
+
+    const bp=-be.Yp + be.Mp*be.X*sind;
+    const c1p=be.Xp + be.Mp*be.Y*sind + be.Mp*be.L1*be.tanf1*cosd;
+        
+    
+    let Q = Math.atan2(bp,c1p);
+    const Δa=getΔ(Q,be);
+    const Δb=getΔ(Q-Math.PI,be);
+    //continue with the point where Δ<=be.l
+
+    const l=be.L1;
+    if(Δa<l){
+        Q=Q;
+    } else if(Δb<l){
+        Q-=Math.PI;
+    }
+
+    const sinγQ=be.X*Math.cos(Q) - be.Y*Math.sin(Q);
+    const γQ=Math.asin(sinγQ);
+    const γ=γQ+Q;
+    const η=Math.cos(γ)
+    
+    const cosϕsinθ=Math.sin(γ);
+    const ζ=0; //Maybe?
+    const cosϕcosθ=-η*sind+ζ*cosd;
+    
+    const cotθ = cosϕcosθ/cosϕsinθ;
+    const θ=Math.atan(1/cotθ)/rad;
+    const λ=-(be.H-θ);
+    const sinϕ=η*cosd+ζ*sind;
+    const ϕ=Math.asin(sinϕ)/rad;
+
+    return {lat: ϕ, lon: λ}
+    
 }

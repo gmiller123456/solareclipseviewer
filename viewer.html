@@ -194,7 +194,7 @@ Released as public domain
 */
 
 import {getElementCoeffs,getLocalCircumstances,computeOutlineCurve} from "./eclipse.js";
-import {getRiseSetCurves, computeCentralLatLonForTime, getExtremePoints, getEclipseCenter, getTotalityLimitsByLongitudeList, getPartialLimitsByLogitudeList} from "./eclipse.js";
+import {getRiseSetCurves, computeCentralLatLonForTime, getMaxEclipseAtRiseSetPoints, getExtremePoints, getTotalityLimitsByLongitudeList, getPartialLimitsByLogitudeList} from "./eclipse.js";
 import {convertTDBToUTC,hoursToTime,prettyTime} from "./astro.js";
 import {drawOverlay} from "./overlay.js";
 
@@ -208,7 +208,7 @@ let markerList=[];
 let lineList=[];
 let durationLines=[];
 
-var map = L.map('map',{ zoomControl: false }).setView([38.2738, -86.4147], 4);
+var map = L.map('map',{ zoomControl: false }).setView([38.2738, -86.4147], 2);
 let mapURL="https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 let mapAttrib='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 let airialURL="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
@@ -399,7 +399,7 @@ function computeEclipseData(){
     const southP=new Array();
     getPartialLimitsByLogitudeList(e,-1,limits.sStart,limits.sEnd)[0].forEach(el => {if(el!=null) southP.push(new L.LatLng(el.lat,el.lon))});
 
-    const centerPoint=getEclipseCenter(e);
+    //const centerPoint=getEclipseCenter(e);
 
     let eclipseData={};
     eclipseData.e=e;
@@ -411,7 +411,7 @@ function computeEclipseData(){
     eclipseData.southTotalityLimits=south;
     eclipseData.northPartialLimits=northP;
     eclipseData.southPartialLimits=southP;
-    eclipseData.centerPoint=centerPoint;
+    //eclipseData.centerPoint=centerPoint;
     eclipseData.durationLines=null;
 
     const backgroundWorker=new Worker("backgroundworker.js",{type: "module"});
@@ -520,6 +520,8 @@ function animate(){
 
 let runAmination=true;
 let animhour;
+animhour=-.96;
+animhour=.5;
 animhour=-2;
 let umbraLine=null;
 let penumbraLine=null;
@@ -535,7 +537,6 @@ document.getElementById("timeZoneSelect").addEventListener("input",updateDisplay
 document.getElementById("timeSlider").addEventListener("input",sliderInput);
 window.addEventListener("resize",updateDisplay);
 updateDisplay(null);
-
 </script>
 </body>
 </html>
