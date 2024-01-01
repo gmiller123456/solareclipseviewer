@@ -332,7 +332,7 @@ export function computeCentralLatLonForTime(e,UTC){
 
     const A = (L1p - L2p)/(L1p + L2p);
 
-    return {lat: Φ, lon: -λ};
+    return {lat: Φ, lon: -λ, magnitude: A, duration: duration, width: width};
 }
 
 function computeExtremes(e,t0){
@@ -699,26 +699,24 @@ export function computeOutlineCurve(t){
     
     let p=computeOutlinePoint(be,prange.start,false);
     let i=0;
-    while(!isNaN(p.lat) && !isNaN(p.lon) && i<.1){
+    while((isNaN(p.lat) || !isNaN(p.lon)) && i<.3){
         p=computeOutlinePoint(be,prange.start+i,false);
-        i+=.01;
+        i+=.001;
     }
     penumbra.push(p);
-    if(i>1)console.log("Here");
+    
 
     for(let i=prange.start;i<prange.end;i+=.1){
         penumbra.push(computeOutlinePoint(be,i,false));
     }
+    
     p=computeOutlinePoint(be,prange.end,false);
     i=0;
-    while(!isNaN(p.lat) && !isNaN(p.lon) && i<.1){
+    while((isNaN(p.lat) || isNaN(p.lon)) && i<.3){
         p=computeOutlinePoint(be,prange.end-i,false);
-        i+=.01;
+        i+=.001;
     }
     penumbra.push(p);
-    if(i>1)console.log("Here");
-
-    penumbra.push(computeOutlinePoint(be,prange.end-.25,false));
 
     for(let i=0;i<360;i+=.1){
         umbra.push(computeOutlinePoint(be,i,true));
@@ -888,4 +886,19 @@ function getMaxEclipseAtRiseSetPoint(be){
 
     return {lat: ϕ, lon: λ}
     
+}
+
+function getGreatestEclipseTime(e){
+    const be0=getElements(e,0,0,0,0);
+
+    const x0xpy0yp=be0.X*be0.Xp + be0.Y*be0.Yp;
+    const n1=be0.Xp*be0.Xp + be0.Yp*be0.Yp;
+    const t=-(be0.X*be0.Xp + be0.Y*be0.Yp)/n1;
+
+    return t;
+}
+
+export function getGreatestEclipse(elements){
+    const t=getGreatestEclipseTime(elements);
+    return(computeCentralLatLonForTime(elements,t+elements.T0));
 }

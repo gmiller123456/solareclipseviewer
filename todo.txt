@@ -1,6 +1,7 @@
 Maximum eclipse location is wrong (Exp Sup P238)
 Get start and end times of eclipse (for animation) Exp Sup P233
 
+Show shadow of max eclipse on click
 get actual extreme points of penumbra and umbra lines
 Location button on map
 Countdown timer

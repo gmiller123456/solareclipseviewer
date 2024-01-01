@@ -194,7 +194,7 @@ Released as public domain
 */
 
 import {getElementCoeffs,getLocalCircumstances,computeOutlineCurve} from "./eclipse.js";
-import {getRiseSetCurves, computeCentralLatLonForTime, getMaxEclipseAtRiseSetPoints, getExtremePoints, getTotalityLimitsByLongitudeList, getPartialLimitsByLogitudeList} from "./eclipse.js";
+import {getGreatestEclipse,getRiseSetCurves, computeCentralLatLonForTime, getMaxEclipseAtRiseSetPoints, getExtremePoints, getTotalityLimitsByLongitudeList, getPartialLimitsByLogitudeList} from "./eclipse.js";
 import {convertTDBToUTC,hoursToTime,prettyTime} from "./astro.js";
 import {drawOverlay} from "./overlay.js";
 
@@ -509,6 +509,13 @@ function updateTimeLabel(hour){
     document.getElementById("timeSliderLabel").innerText=hoursToTime(time,tz);
 }
 
+function plotGreatestEclipse(){
+    const ge=getGreatestEclipse(getElementCoeffs());
+    const p=new L.LatLng(ge.lat,ge.lon);
+    let m=L.circleMarker(p,{radius: 5});
+    m.addTo(map);
+}
+
 function animate(){
     displayShadowOutlines(animhour);
     if(runAmination && animhour<3){
@@ -537,6 +544,8 @@ document.getElementById("timeZoneSelect").addEventListener("input",updateDisplay
 document.getElementById("timeSlider").addEventListener("input",sliderInput);
 window.addEventListener("resize",updateDisplay);
 updateDisplay(null);
+
+plotGreatestEclipse();
 </script>
 </body>
 </html>
