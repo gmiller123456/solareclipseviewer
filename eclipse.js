@@ -149,6 +149,7 @@ export function getElements1994(){
 }
 
 function getElements(e,t,Φ,λ,height){
+    //From Meeus - Elements of Solar Eclipses
     const o={};
     o.X=e.X0 + e.X1*t + e.X2*t*t + e.X3*t*t*t;
     o.Y=e.Y0 + e.Y1*t + e.Y2*t*t + e.Y3*t*t*t;
@@ -187,6 +188,7 @@ function getElements(e,t,Φ,λ,height){
 }
 
 export function getLocalCircumstances(Φ,λ,height){
+    //From Meeus - Elements of Solar Eclipses
     const e=getElementCoeffs();
     λ=-λ;
 
@@ -281,6 +283,7 @@ export function getLocalCircumstances(Φ,λ,height){
 }
 
 export function computeCentralLatLonForTime(e,UTC){
+    //From Meeus - Elements of Solar Eclipses
     const t=UTC-e.T0;
 
     const X=e.X0 + e.X1*t + e.X2*t*t + e.X3*t*t*t;
@@ -336,6 +339,7 @@ export function computeCentralLatLonForTime(e,UTC){
 }
 
 function computeExtremes(e,t0){
+    //From Meeus - Elements of Solar Eclipses
     const r={};
     const t=t0;
     r.t=t;
@@ -394,6 +398,7 @@ function computeExtremes(e,t0){
 }
 
 function computeEstimate(e){
+    //From Meeus - Elements of Solar Eclipses
     const ω=1/Math.sqrt(1-0.006694385 * Math.cos(e.d0*rad)*Math.cos(e.d0*rad));
     const u=e.X0;
     const a=e.X1;
@@ -411,6 +416,7 @@ function computeEstimate(e){
 }
 
 function refineEstimate(e,t){
+    //From Meeus - Elements of Solar Eclipses
     const X=e.X0 + e.X1*t + e.X2*t*t + e.X3*t*t*t;
     const Y=e.Y0 + e.Y1*t + e.Y2*t*t + e.Y3*t*t*t;
     const d=e.d0 + e.d1*t + e.d2*t*t;
@@ -445,6 +451,7 @@ export function getExtremePoints(e){
 }
 
 export function getLatLonEclipseAtNoon(e){
+    //From Meeus - Elements of Solar Eclipses
     let t=0;
     for(let i=0;i<20;i++){
         t= - (e.X0 + t*t*(e.X2 + t*e.X3))/e.X1;
@@ -516,7 +523,7 @@ function getLimitsByLongitudeAsList(e,northsouth,G,startLon,endLon){
 }
 
 function getLimitsForLogitude(e,λ,northsouth,G,startΦ){
-
+    //From Meeus - Elements of Solar Eclipses
     let t=0;
     let Φ=startΦ;
     
@@ -782,6 +789,7 @@ export function getRiseSetCurves(){
 }
 
 function computeRiseSetPoints(be){
+    //From Explanatory Supplement 1961ed
     //TODO: Flattening of the Earth
     //P232 rise set curve
     const ζ=0;
@@ -802,6 +810,7 @@ function computeRiseSetPoints(be){
 }
 
 function computeRiseSetPoint(be,γ){
+    //From Explanatory Supplement 1961ed
     const ζ=0;
     const η=Math.cos(γ);
     const ξ=Math.sin(γ);
@@ -837,6 +846,7 @@ export function getMaxEclipseAtRiseSetPoints(){
 }
 
 function getΔ(Q,be){
+    //From Explanatory Supplement 1961ed
     const sinγQ=be.X*Math.cos(Q) - be.Y*Math.sin(Q);
     const γQ=Math.asin(sinγQ);
     const γ=γQ+Q;
@@ -889,6 +899,7 @@ function getMaxEclipseAtRiseSetPoint(be){
 }
 
 function getGreatestEclipseTime(e){
+    //From Explanatory Supplement 1961ed
     const be0=getElements(e,0,0,0,0);
 
     const x0xpy0yp=be0.X*be0.Xp + be0.Y*be0.Yp;
@@ -901,4 +912,87 @@ function getGreatestEclipseTime(e){
 export function getGreatestEclipse(elements){
     const t=getGreatestEclipseTime(elements);
     return(computeCentralLatLonForTime(elements,t+elements.T0));
+}
+
+function getPenumbraStartStopTimes(elements){
+    //From Explanatory Supplement 1961ed
+    const be=getElements(elements,0,0,0,0);
+    const rad=Math.PI/180;
+    const e=Math.sqrt(0.00672267);
+    
+    be.x=be.X;
+    be.y=be.Y;
+    be.xp=be.Xp;
+    be.yp=be.Yp;
+    be.l1=be.L1;
+    
+    be.μ=be.H;
+    
+    const ρ1=Math.sqrt(1-e*e*Math.cos(be.d*rad)*Math.cos(be.d*rad));
+    const m=Math.sqrt(be.x*be.x + be.y*be.y);
+    
+    const y1=be.y/ρ1;
+    const m1=Math.sqrt(be.x*be.x + y1*y1);
+    
+    const ρ=m/m1;
+    
+    const n1=Math.sqrt(be.xp*be.xp + be.yp*be.yp);
+    const sinψ = (be.x*be.yp - be.xp*be.y)/(n1*(be.l1 + ρ));
+    const ψ=Math.asin(sinψ);
+    const cosψ=Math.cos(ψ);  //use negatvie for first contact, and positive for last contact
+    
+    const t1=((be.l1 + ρ)/n1)*(-cosψ) - (be.x*be.xp + be.y*be.yp)/(n1*n1);
+    const t2=((be.l1 + ρ)/n1)*( cosψ) - (be.x*be.xp + be.y*be.yp)/(n1*n1);
+
+    return {start: t1, end: t2};
+}
+
+function getPenumbraStartStopPoints(be){
+    const rad=Math.PI/180;
+    const e=Math.sqrt(0.00672267);
+    
+    be.x=be.X;
+    be.y=be.Y;
+    be.μ=be.H;
+    
+    //P220
+    const ρ1=Math.sqrt(1-e*e*Math.cos(be.d*rad)*Math.cos(be.d*rad));
+    const ρ2=(1-e*e*Math.sin(be.d*rad)*Math.sin(be.d*rad));
+    const sind1=Math.sin(be.d*rad)/ρ1;
+    const cosd1=Math.sqrt(1-e*e)*Math.cos(be.d*rad)/ρ1;
+    const sind1d2=e*e*Math.sin(be.d*rad)*Math.cos(be.d*rad)/(ρ1*ρ2);
+    const cosd1d2=Math.sqrt(1-e*e)/(ρ1*ρ2);
+    const m=Math.sqrt(be.x*be.x + be.y*be.y);
+    
+    const y1=be.y/ρ1;
+    const m1=Math.sqrt(be.x*be.x + y1*y1);
+    
+    const ξ=be.x/m1;
+    const η1=y1/m1;
+    const ζ1=0;
+    
+    const cosϕ1sinθ=ξ;
+    const cosϕ1cosθ=-η1*sind1+ζ1*cosd1;
+    const sinϕ1=     η1*cosd1+ζ1*sind1;
+    const tanθ=cosϕ1sinθ/cosϕ1cosθ;
+    const θ=Math.atan2(cosϕ1sinθ,cosϕ1cosθ)/rad;
+    const λ=-(be.μ-θ);
+    const tanϕ1=(η1*cosd1+ζ1*sind1)/(ξ/Math.sin(θ*rad));
+    const tanϕ=tanϕ1/Math.sqrt(1-e*e);
+    const ϕ=Math.atan(tanϕ)/rad;
+
+    return {lat: ϕ, lon: λ};
+    
+}
+
+export function getPenumbraBeginAndEndInfo(elements){
+    const times=getPenumbraStartStopTimes(elements);
+    const start=getPenumbraStartStopPoints(getElements(elements,times.start,0,0,0));
+    const end=getPenumbraStartStopPoints(getElements(elements,times.end,0,0,0));
+    
+    //const baseTime=elements.T0+elements.Δt/60.0/60.0;
+    return {
+            start: {lat: start.lat, lon: start.lon, time: times.start},
+            end: {lat: end.lat, lon: end.lon, time: times.end}
+        };
 }

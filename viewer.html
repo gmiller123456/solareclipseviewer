@@ -194,7 +194,7 @@ Released as public domain
 */
 
 import {getElementCoeffs,getLocalCircumstances,computeOutlineCurve} from "./eclipse.js";
-import {getGreatestEclipse,getRiseSetCurves, computeCentralLatLonForTime, getMaxEclipseAtRiseSetPoints, getExtremePoints, getTotalityLimitsByLongitudeList, getPartialLimitsByLogitudeList} from "./eclipse.js";
+import {getPenumbraBeginAndEndInfo,getGreatestEclipse,getRiseSetCurves, computeCentralLatLonForTime, getMaxEclipseAtRiseSetPoints, getExtremePoints, getTotalityLimitsByLongitudeList, getPartialLimitsByLogitudeList} from "./eclipse.js";
 import {convertTDBToUTC,hoursToTime,prettyTime} from "./astro.js";
 import {drawOverlay} from "./overlay.js";
 
@@ -208,7 +208,7 @@ let markerList=[];
 let lineList=[];
 let durationLines=[];
 
-var map = L.map('map',{ zoomControl: false }).setView([38.2738, -86.4147], 2);
+var map = L.map('map',{ zoomControl: false }).setView([38.2738, -86.4147], 5);
 let mapURL="https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 let mapAttrib='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 let airialURL="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
@@ -374,6 +374,25 @@ function drawRiseSetCurves(){
     return lists;
 }
 
+function computeGreatestEclipse(){
+    const ge=getGreatestEclipse(getElementCoeffs());
+    let p=new L.LatLng(ge.lat,ge.lon);
+    let m=L.circleMarker(p,{radius: 5});
+    m.addTo(map);
+}
+
+function computePenumbraExtremeInfo(){
+    const pi=getPenumbraBeginAndEndInfo(getElementCoeffs());
+    let p=new L.LatLng(pi.start.lat,pi.start.lon);
+    let m=L.circleMarker(p,{radius: 1});
+    m.addTo(map);
+
+    p=new L.LatLng(pi.end.lat,pi.end.lon);
+    m=L.circleMarker(p,{radius: 1});
+    m.addTo(map);
+    return pi;
+}
+
 function computeEclipseData(){
     const e=getElementCoeffs();
     const extremes=getExtremePoints(e);
@@ -399,13 +418,15 @@ function computeEclipseData(){
     const southP=new Array();
     getPartialLimitsByLogitudeList(e,-1,limits.sStart,limits.sEnd)[0].forEach(el => {if(el!=null) southP.push(new L.LatLng(el.lat,el.lon))});
 
-    //const centerPoint=getEclipseCenter(e);
+    computeGreatestEclipse();
+    const pi=computePenumbraExtremeInfo();
+
 
     let eclipseData={};
     eclipseData.e=e;
     eclipseData.extremes=extremes;
-    eclipseData.beginTime=begin;
-    eclipseData.endTime=end;
+    eclipseData.beginTime=pi.start.time;
+    eclipseData.endTime=pi.end.time;
     eclipseData.centralCurve=centralCurve;
     eclipseData.northTotalityLimits=north;
     eclipseData.southTotalityLimits=south;
@@ -509,16 +530,9 @@ function updateTimeLabel(hour){
     document.getElementById("timeSliderLabel").innerText=hoursToTime(time,tz);
 }
 
-function plotGreatestEclipse(){
-    const ge=getGreatestEclipse(getElementCoeffs());
-    const p=new L.LatLng(ge.lat,ge.lon);
-    let m=L.circleMarker(p,{radius: 5});
-    m.addTo(map);
-}
-
 function animate(){
     displayShadowOutlines(animhour);
-    if(runAmination && animhour<3){
+    if(runAmination && animhour<eclipseData.endTime){
         animhour+=.01;
         window.setTimeout(animate,50);
         document.getElementById("timeSlider").value=animhour;
@@ -526,10 +540,7 @@ function animate(){
 }
 
 let runAmination=true;
-let animhour;
-animhour=-.96;
-animhour=.5;
-animhour=-2;
+let animhour=eclipseData.beginTime;
 let umbraLine=null;
 let penumbraLine=null;
 animate();
@@ -545,7 +556,6 @@ document.getElementById("timeSlider").addEventListener("input",sliderInput);
 window.addEventListener("resize",updateDisplay);
 updateDisplay(null);
 
-plotGreatestEclipse();
 </script>
 </body>
 </html>
