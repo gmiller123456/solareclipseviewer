@@ -1,0 +1,21 @@
+{
+    "name": "Eclipse Map - Celestial Programming",
+    "short_name": "Eclipse Map",
+    "description": "A map showing the path and local circumstances for the 2024 Solar Eclipse.",
+    "icons": [
+      {
+        "src": "images/icon-32.png",
+        "sizes": "32x32",
+        "type": "image/png"
+      },
+      {
+        "src": "images/icon-512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ],
+    "start_url": "/apps/SolarEclipseViewer/viewer.html",
+    "display": "fullscreen",
+    "theme_color": "#B12A34",
+    "background_color": "#B12A34"
+  }

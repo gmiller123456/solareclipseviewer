@@ -139,7 +139,20 @@
 Greg Miller gmiller@gregmiller.net 2022
 Released as public domain
 */
-L=WE;
+class MI{
+    static map(a){
+        return WE.map(a);
+    }
+
+    static tileLayer(url,options){
+        return WE.tileLayer(url,options);
+    }
+
+    static icon(options){
+        return L.icon(options);
+    }
+}
+
 import {getElementCoeffs,getLocalCircumstances} from "./eclipse.js";
 import {computeCentralLatLonForTime, getExtremePoints, getEclipseCenter, getTotalityLimitsByLongitudeList, getPartialLimitsByLogitudeList} from "./eclipse.js";
 import {convertTDBToUTC,hoursToTime,prettyTime} from "./astro.js";
@@ -155,14 +168,14 @@ let markerList=[];
 let lineList=[];
 let durationLines=[];
 
-var map = WE.map('map');
+var map = MI.map('map');
 //map.setView([38.2738, -86.4147], 5);
 let mapURL="https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 let mapAttrib='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 let airialURL="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 let airialAttrib="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
-let mapLayer=WE.tileLayer(mapURL,{attribution: mapAttrib})
-let airialLayer=L.tileLayer(airialURL,{
+let mapLayer=MI.tileLayer(mapURL,{attribution: mapAttrib})
+let airialLayer=MI.tileLayer(airialURL,{
     attribution: airialAttrib,
     maxNativeZoom:19,
         maxZoom:25
@@ -189,14 +202,14 @@ mapLayer.addTo(map);
 //map.addLayer(mapLayer);
 
 // Add in a crosshair for the map
-var crosshairIcon = L.icon({
+var crosshairIcon = MI.icon({
     iconUrl: 'images/circle site.png',
     iconSize:     [20, 20], // size of the icon
     iconAnchor:   [10, 10], // point of the icon which will correspond to marker's location
 });
 
 const p=map.getCenter();
-const crosshairs=L.marker(p,{icon:crosshairIcon}).addTo(map);
+const crosshairs=WE.marker(p,{icon:crosshairIcon}).addTo(map);
 
 map.on('move', updateDisplay, this);
 map.on('click', mapClick,this);
@@ -299,7 +312,7 @@ function displayLocalCircumstances(){
 function updateDisplay(e){
     const t=displayLocalCircumstances();
     crosshairs.setLatLng(map.getCenter());
-    drawOverlay(ctx,map,eclipseData);
+    //drawOverlay(ctx,map,eclipseData);
 }
 
 function computeCentralCurve(e,begin,end){

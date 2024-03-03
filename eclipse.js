@@ -584,7 +584,6 @@ function getLimitsForLogitude(e,λ,northsouth,G,startΦ){
     return {t: t, lat: Φ, lon: λ};
 }
 
-
 function computeOutlinePoint(be,Q,umbra){
     //The Explanatory Supplement to the Astronomical Ephemeris 1961
     //Prediction and Analysis of Solar Eclipse Circumstances - Williams 1971
@@ -677,7 +676,6 @@ function getOutlineCurveQRange(be,l){
 
     return {start: Q2, end: Q1};
 }
-
 
 export function computeOutlineCurve(t){
     const el=getElementCoeffs();
@@ -829,7 +827,6 @@ function computeRiseSetPoint(be,γ){
     const ϕ=Math.asin(sinϕ);
 
     return {lat: ϕ/rad, lon: (λ<=Math.PI) ? λ/rad : λ/rad-360};
-
 }
 
 export function getMaxEclipseAtRiseSetPoints(){

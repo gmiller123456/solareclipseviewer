@@ -1,16 +1,19 @@
-Get start and end times of eclipse (for animation) Exp Sup P233
 
-Show shadow of max eclipse on click
-get actual extreme points of penumbra and umbra lines
-Location button on map
+Line segments don't completely show when zoomed in.
+Allow link to location and time (and Time Zone)
+Search for major cities
+Window resize doesn't work well - Appears to be an issue with map bounds checking
 Countdown timer
 -beep alarm
 Real time display
-Allow link to location and time (and Time Zone)
+Cloud forecast overlay (display % in info list)
+Time zone lookup fails after crossing the international date line
+
+Account for partial limit crossing pole
+Show shadow of max eclipse on click
 Rise and set curves need to account for Earth flattening
 "Lock Location" button as alternative to "get location"
 Remember user's location in local storage
-Search for major cities
 Weather
-Window resize doesn't work well - Appears to be an issue with map bounds checking
 Jitter on penumbra shadow animation
+

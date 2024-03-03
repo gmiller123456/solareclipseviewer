@@ -1,5 +1,5 @@
 export function hoursToTime(hours,tz){
-    hours+=tz.offset;  //Convert to EDT
+    hours+=tz.offset/60/60;  //Convert to EDT
     let h=Math.trunc(hours);
     let m=(hours-h)*60;
     let s=Math.trunc((m-Math.trunc(m))*60);
@@ -18,8 +18,13 @@ export function hoursToTime(hours,tz){
 export function prettyTime(hours){
     let h=Math.trunc(hours);
     let m=(hours-h)*60;
-    let s=Math.trunc((m-Math.trunc(m))*60);
+    let s=((m-Math.trunc(m))*60).toFixed(1);
     m=Math.trunc(m);
+
+    if(h>0){
+        if(s<10) s="0"+s;
+        if(m<10) m="0"+m;
+    }
 
     let t=s+"s";
     if(m>0) t=m+"m "+t;
@@ -86,3 +91,12 @@ export function getLeapSeconds(jd) {
     return 0.0;
 }
 
+export function JulianDateFromUnixTime(t){
+	//Not valid for dates before Oct 15, 1582
+	return (t / 86400000) + 2440587.5;
+}
+
+export function UnixTimeFromJulianDate(jd){
+	//Not valid for dates before Oct 15, 1582
+	return (jd-2440587.5)*86400000;
+}

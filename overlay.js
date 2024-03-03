@@ -1,3 +1,9 @@
+/*
+Greg Miller gmiller@gregmiller.net 2022
+https://www.celestialprogramming.com/
+Released as public domain
+*/
+
 export function drawOverlay(ctx,map,eclipseData){
     const zoom=map.getZoom();
     
@@ -25,8 +31,8 @@ export function drawOverlay(ctx,map,eclipseData){
 
     if(eclipseData.durationLines!=null && document.getElementById("showDurationLinesCheckbox").checked){
         for(let i=0;i<eclipseData.durationLines.length;i++){
-            const l1=drawLineOverlay(ctx,map,eclipseData.durationLines[i][0], {color: 'purple', weight: 1});
-            const l2=drawLineOverlay(ctx,map,eclipseData.durationLines[i][1], {color: 'purple', weight: 1});
+            const l1=drawLineOverlay(ctx,map,eclipseData.durationLines[i][0], {color: '#00000099', weight: 1});
+            const l2=drawLineOverlay(ctx,map,eclipseData.durationLines[i][1], {color: '#00000099', weight: 1});
             if(zoom>=7){
                 ctx.font = ".75em Georgia";
                 ctx.textBaseline="top";
@@ -51,16 +57,17 @@ function drawLabel(ctx,map,text,points){
     const y2=p2.y+(o.y-o1.y);
 
     const angle=Math.atan2(y2-y1,x2-x1);
+    //ctx.strokeStyle="rgba(255,255,255,.75)";
 
     ctx.save();
     ctx.translate(x1,y1);
     ctx.rotate(angle);
 
+    //ctx.strokeText(text,0,0);
     ctx.fillText(text,0,0);
 
     ctx.restore()
 }
-
 
 function drawLineOverlay(ctx,map,points,options){
     const bounds=map.getBounds();
