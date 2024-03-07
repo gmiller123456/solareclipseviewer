@@ -7,7 +7,17 @@
     <link rel="manifest" href="eclipsemap.webmanifest">
     <link rel="icon" href="images/icon-32.png">
     <style>
-        
+        .linklike{
+            color: blue;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .buttonlike{
+            font-size: 1.5em;
+            padding: 5px;
+            display: inline-block;
+        }
+
         #map {
             z-index: 1;
             position: absolute;
@@ -30,15 +40,14 @@
             top: 20px;
             margin-left: 10px;
             border-radius: 10px;
+            background-color: rgba(255,255,255,.5);
         }
 
         #countdownDiv{
-            background-color: rgba(255,255,255,.5);
             display: inline-block;
             vertical-align: top;
         }
         #data{
-            background-color: rgba(255,255,255,.5);
             display: inline-block;
         }
 
@@ -63,6 +72,12 @@
         @media screen and (max-width:800px){
             #infoBox{
                 font-size: .5em;
+            }
+            .linklike{
+                font-size: 1.5em;
+            }
+            .buttonlike{
+                font-size: 2.5em;
             }
         }
 
@@ -160,7 +175,7 @@
     </div>
     <div id="controls">
         <div style="flex-grow: 100;">
-            <input id="timeSlider" min=-3 max=3 step=.01 type=range>
+            <input id="timeSlider" min=-3 max=3 step=.001 type=range>
         </div>
         <label id="timeSliderLabel" for="timeSlider">12:43:02 pm</label>
     </div>
@@ -188,7 +203,7 @@
                     <table>
                         <tr><td align="right"><label for="showDurationLinesCheckbox">Show Duration Lines</label></td><td><input type=checkbox id="showDurationLinesCheckbox" style="visibility: hidden;" checked><span id='durationLinesLoadingSpinner' class="loadingSpinner"></span><br></td></tr>
                         <tr><td align="right"><label for="showCountdownCheckbox">Show Countdown</label></td><td><input type=checkbox id="showCountdownCheckbox" checked></td></tr>
-                        <tr><td align="right"><label for="realTimeCheckbox">Real Time Animation</label></td><td><input type=checkbox id="realTimeCheckbox"></td></tr>
+                        <tr><td align="right"><label for="realTimeCheckbox">Real Time Display</label></td><td><input type=checkbox id="realTimeCheckbox"></td></tr>
                     </table>
                 </center>
             </div>
@@ -200,7 +215,25 @@
                 <tr><td class="dataLabel">Totality End:</td><td class="dataField"></td></tr>
                 <tr><td class="dataLabel">Partial End:</td><td class="dataField"></td></tr>
             </table>
-        </div>
+            <br><br>
+            <center>
+                <table>
+                    <tr><td align="right"><label for="tenSecondWarning">Ten Second Alarms</label></td><td><input type=checkbox checked id="tenSecondWarning" ></td></tr>
+                    <tr><td align="right"><label for="oneMinuteWarning">One Minute Alarms</label></td><td><input type=checkbox checked id="oneMinuteWarning" ></td></tr>
+                    <tr><td align="right"><label for="fiveMinuteWarning">Five Minute Alarms</label></td><td><input type=checkbox checked id="fiveMinuteWarning" ></td></tr>
+                </table>
+                <input type="button" id="warningButton" value="Test Alarm Tone"><br><br>
+                <a class="linklike" id="simulationHref">Simulation Mode</a>
+                <div style="display: none" id="simulationModeDiv">
+                    <a onclick="simulationTimeClick(-1);" class="linklike buttonlike">-01</a>
+                    <a onclick="simulationTimeClick(1);" class="linklike buttonlike">+01</a> Min<br>
+                    <a onclick="simulationTimeClick(-5);" class="linklike buttonlike">-05</a>
+                    <a onclick="simulationTimeClick(5);" class="linklike buttonlike">+05</a> Min<br>
+                    <a onclick="simulationTimeClick(-30);" class="linklike buttonlike">-30</a>
+                    <a onclick="simulationTimeClick(30);" class="linklike buttonlike">+30</a> Min
+                </div>
+            </center>
+</div>
     </div>
 
 <script>
@@ -215,6 +248,7 @@
                 })
         })
     }
+
 </script>
 <script type="module">
 /*
@@ -223,9 +257,10 @@ https://www.celestialprogramming.com/
 Released as public domain
 */
 
-import {initUI} from "./UI.js";
+import {initUI,simulationTimeClick} from "./UI.js";
 initUI();
 
+window.simulationTimeClick=simulationTimeClick;
 </script>
 </body>
 </html>

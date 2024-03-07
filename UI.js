@@ -21,7 +21,16 @@ canvas.height=window.innerHeight;
 let markerList=[];
 let lineList=[];
 
-var map = L.map('map',{ zoomControl: false, renderer: L.canvas() }).setView([38.2738, -86.4147], 5);
+let lat=localStorage.getItem("eclipsemap_lat");
+let lon=localStorage.getItem("eclipsemap_lon");
+let zoom=localStorage.getItem("eclipsemap_zoom");
+if(!lat || !lon || !zoom){
+    lat=38.2738;
+    lon=-86.414;
+    zoom=5;
+}
+
+var map = L.map('map',{ zoomControl: false, renderer: L.canvas() }).setView([lat,lon], zoom);
 let mapURL="https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 let mapAttrib='&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 let airialURL="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
@@ -171,8 +180,10 @@ function updateDisplay(e){
     displayShadowOutlines(document.getElementById("timeSlider").value-0);
     crosshairs.setLatLng(center);
     drawOverlay(ctx,map,eclipseData);
-    //console.log(tzlookup(center.lat, center.lng));
-
+    updateTimeLabel(animhour);
+    localStorage.setItem("eclipsemap_lat",center.lat);
+    localStorage.setItem("eclipsemap_lon",center.lng);
+    localStorage.setItem("eclipsemap_zoom",map.getZoom());
 }
 
 function workerMessage(e){
@@ -218,15 +229,19 @@ function populateTimeZones(){
 
 function sliderInput(e){
     runAmination=false;
-    const animhour=document.getElementById("timeSlider").value-0;
+    animhour=document.getElementById("timeSlider").value-0;
     displayShadowOutlines(animhour);
     updateTimeLabel(animhour);
 }
 
 function updateTimeLabel(hour){
     const e=getElementCoeffs();
-    const time=e.T0 + hour - e.Δt/60/60
-    document.getElementById("timeSliderLabel").innerText=hoursToTime(time,timeZone);
+    let time=e.T0 + hour - e.Δt/60/60
+    if(time < eclipseData.beginTime){
+        document.getElementById("timeSliderLabel").innerText="N/A";
+    } else {
+        document.getElementById("timeSliderLabel").innerText=hoursToTime(time,timeZone);
+    }
 }
 
 function animate(){
@@ -249,18 +264,50 @@ function positionListener(p){
 }
 
 function realTimeClick(e){
+    runAmination=false;
+    document.getElementById("timeSlider").disabled=true;
 
 }
 
+function alarm(time,cutoff){
+    if(Math.abs(time-cutoff*1000)<=1000){
+        beep();
+    }
+}
+
+function alarms(first, second, third, fourth){
+    if(document.getElementById("tenSecondWarning").checked){
+        alarm(first,10);
+        alarm(second,10);
+        alarm(third,10);
+        alarm(fourth,10);
+    }
+
+    if(document.getElementById("oneMinuteWarning").checked){
+        alarm(first,60);
+        alarm(second,60);
+        alarm(third,60);
+        alarm(fourth,60);
+    }
+
+    if(document.getElementById("fiveMinuteWarning").checked){
+        alarm(first,300);
+        alarm(second,300);
+        alarm(fourth,300);
+    }
+}
+
 function updateCountdown(){
+    const e=getElementCoeffs();
     const p=map.getCenter();
     const c=getLocalCircumstances(p.lat, p.lng,0);
     const t=document.getElementById("countdownTable");
-    const time=new Date().getTime();
+    const time=new Date().getTime()+testTimeOffset;
     const fc=UnixTimeFromJulianDate(c.UTFirstContact/24.0+c.jd)-time;
     const lc=UnixTimeFromJulianDate(c.UTLastContact/24.0+c.jd)-time;
     const sc=UnixTimeFromJulianDate(c.UTSecondContact/24.0+c.jd)-time;
     const tc=UnixTimeFromJulianDate(c.UTThirdContact/24.0+c.jd)-time;
+    alarms(fc,sc,tc,lc);
 
     if(c.mag>0){
         t.rows[0].cells[1].innerHTML=prettyTime(fc/1000/60/60);
@@ -279,7 +326,22 @@ function updateCountdown(){
     }
 }
 
+function setRealTimeDisplay(){
+    const e=getElementCoeffs();
+    const t0=UnixTimeFromJulianDate(e.jd) + (e.T0 - e.Δt/60/60)*60*60*1000;
+    const now=new Date().getTime()+testTimeOffset;
+    const diff=(now-t0)/1000/60/60;
+    animhour=diff;
+    document.getElementById("timeSlider").value=animhour;
+
+    displayShadowOutlines(animhour);
+    updateTimeLabel(animhour);
+}
+
 function displayCountdown(){
+    if(document.getElementById("realTimeCheckbox").checked==true){
+        setRealTimeDisplay();
+    }
     if(document.getElementById("showCountdownCheckbox").checked==true){
         updateCountdown();
     }
@@ -290,13 +352,30 @@ function displayCountdown(){
 }
 
 function countdownClick(e){
-    console.log("Here");
     const d=document.getElementById("countdownDiv");
     if(document.getElementById("showCountdownCheckbox").checked==true){
         d.style.display="inline-block";
     } else {
         d.style.display="none";
     }
+}
+
+function beep() {
+    beepSound.play();
+}
+
+function simulationModeClick(){
+    const e=getElementCoeffs();
+    const t0=UnixTimeFromJulianDate(e.jd) + (e.T0 - e.Δt/60/60)*60*60*1000;
+    testTimeOffset=t0+eclipseData.beginTime*60*60*1000 - new Date().getTime() + 1*60*60*1000;
+
+    document.getElementById("simulationModeDiv").style.display="block";
+    document.getElementById("realTimeCheckbox").checked=true;
+    realTimeClick(null);
+}
+
+export function simulationTimeClick(v){
+    testTimeOffset+=v*1000*60;
 }
 
 export function initUI(){
@@ -312,8 +391,9 @@ export function initUI(){
     document.getElementById("timeSlider").addEventListener("input",sliderInput);
     document.getElementById("locationButton").addEventListener("click",locationClick);
     document.getElementById("showCountdownCheckbox").addEventListener("click",countdownClick);
-    document.getElementById("realTimeCheckbox").addEventListener("input",realTimeClick);
-
+    document.getElementById("realTimeCheckbox").addEventListener("click",realTimeClick);
+    document.getElementById("warningButton").addEventListener("click",beep);
+    document.getElementById("simulationHref").addEventListener("click",simulationModeClick);
     
     window.addEventListener("resize",updateDisplay);
     window.setTimeout(()=>{
@@ -322,5 +402,9 @@ export function initUI(){
     updateDisplay(null);
 }
 
+const beepSound = new Audio("alarm.wav");
+
 let runAmination=true;
 let animhour=eclipseData.beginTime;
+let testTimeOffset=0;
+//let testTimeOffset=((32*24 + 14)*60 + 35)*60*1000;

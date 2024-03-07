@@ -1,19 +1,13 @@
+Standalone countdown timer
 
-Line segments don't completely show when zoomed in.
-Allow link to location and time (and Time Zone)
+Weather
+Cloud forecast overlay (display % in info list)
+
 Search for major cities
 Window resize doesn't work well - Appears to be an issue with map bounds checking
-Countdown timer
--beep alarm
-Real time display
-Cloud forecast overlay (display % in info list)
+Allow link to location, time, eclipse, etc (and Time Zone)
 Time zone lookup fails after crossing the international date line
-
 Account for partial limit crossing pole
-Show shadow of max eclipse on click
 Rise and set curves need to account for Earth flattening
-"Lock Location" button as alternative to "get location"
-Remember user's location in local storage
-Weather
 Jitter on penumbra shadow animation
 

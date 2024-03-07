@@ -71,10 +71,10 @@ function drawLabel(ctx,map,text,points){
 
 function drawLineOverlay(ctx,map,points,options){
     const bounds=map.getBounds();
-    const n=bounds._northEast.lat;
-    const e=bounds._northEast.lng;
-    const s=bounds._southWest.lat;
-    const w=bounds._southWest.lng;
+    const n=bounds._northEast.lat+.01;
+    const e=bounds._northEast.lng+.01;
+    const s=bounds._southWest.lat-.01;
+    const w=bounds._southWest.lng-.01;
     
     let firstPoint=null;
     let lastPoint=null;

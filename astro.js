@@ -16,20 +16,34 @@ export function hoursToTime(hours,tz){
 }
 
 export function prettyTime(hours){
+    let sign="";
+    if(hours<0){
+        sign="-";
+        hours=-hours;
+    }
+    let days=0;
+    if (hours>24){
+        days=Math.trunc(hours/24);
+        hours-=days*24;
+    }
     let h=Math.trunc(hours);
     let m=(hours-h)*60;
     let s=((m-Math.trunc(m))*60).toFixed(1);
     m=Math.trunc(m);
 
-    if(h>0){
+    if(h>0 || days >0){
         if(s<10) s="0"+s;
         if(m<10) m="0"+m;
     }
+    if(days>0){
+        if(h<10) h="0"+h;
+    }
 
     let t=s+"s";
-    if(m>0) t=m+"m "+t;
-    if(h>0) t=h+"h "+t;
-    return t;
+    if(m!=0) t=m+"m "+t;
+    if(h!=0 || days >0) t=h+"h "+t;
+    if(days>0) t=days+"d "+t;
+    return sign+t;
 
 }
 
