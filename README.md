@@ -9,3 +9,4 @@ The code is public domain.
 Screenshots:
 ![screenshot1](https://raw.githubusercontent.com/gmiller123456/solareclipseviewer/main/images/screenshot1.png)
 ![screenshot2](https://raw.githubusercontent.com/gmiller123456/solareclipseviewer/main/images/screenshot2.png)
+![screenshot2](https://raw.githubusercontent.com/gmiller123456/solareclipseviewer/main/images/screenshot3.png)
