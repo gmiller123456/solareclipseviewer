@@ -5,6 +5,7 @@ The main file is viewer.html, and on line example is available: https://www.cele
 
 The code is public domain.
 
+[Screenshots are slightly old and don't show all features]
 Screenshots:
 ![screenshot1](https://raw.githubusercontent.com/gmiller123456/solareclipseviewer/main/images/screenshot1.png)
 ![screenshot2](https://raw.githubusercontent.com/gmiller123456/solareclipseviewer/main/images/screenshot2.png)
