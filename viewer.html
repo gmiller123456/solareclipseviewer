@@ -198,12 +198,13 @@
             <br>
             <div id="userControls">
                 <center>
-                    <input type=button id="locationButton" value="Go To Current Location"><br>
                     <input type=button id="clearMarkersButton" value="Clear Markers"><br>
+                    <input type=button id="locationButton" value="Go To Current Location"><br>
                     <table>
+                        <tr><td align="right"><label for="autoUpdatePosition">Auto Update Location</label></td><td><input type=checkbox id="autoUpdatePosition"></td></tr>
                         <tr><td align="right"><label for="showDurationLinesCheckbox">Show Duration Lines</label></td><td><input type=checkbox id="showDurationLinesCheckbox" style="visibility: hidden;" checked><span id='durationLinesLoadingSpinner' class="loadingSpinner"></span><br></td></tr>
                         <tr><td align="right"><label for="showCountdownCheckbox">Show Countdown</label></td><td><input type=checkbox id="showCountdownCheckbox" checked></td></tr>
-                        <tr><td align="right"><label for="realTimeCheckbox">Real Time Display</label></td><td><input type=checkbox id="realTimeCheckbox"></td></tr>
+                        <tr><td align="right"><label for="realTimeCheckbox">Real Time Shadow</label></td><td><input type=checkbox id="realTimeCheckbox"></td></tr>
                     </table>
                 </center>
             </div>

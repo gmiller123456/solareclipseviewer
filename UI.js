@@ -20,6 +20,7 @@ canvas.width=window.innerWidth;
 canvas.height=window.innerHeight;
 let markerList=[];
 let lineList=[];
+let currentPostionMarker=null;
 
 let lat=localStorage.getItem("eclipsemap_lat");
 let lon=localStorage.getItem("eclipsemap_lon");
@@ -27,7 +28,7 @@ let zoom=localStorage.getItem("eclipsemap_zoom");
 if(!lat || !lon || !zoom){
     lat=38.2738;
     lon=-86.414;
-    zoom=5;
+    zoom=3;
 }
 
 var map = L.map('map',{ zoomControl: false, renderer: L.canvas() }).setView([lat,lon], zoom);
@@ -260,7 +261,43 @@ function locationClick(){
 }
 
 function positionListener(p){
-    map.setView([p.coords.latitude, p.coords.longitude]);
+    if(p!=null){
+        map.setView([p.coords.latitude, p.coords.longitude]);
+        displayCurrentPositionMarker(p.coords.latitude, p.coords.longitude);
+    }
+    if(document.getElementById("autoUpdatePosition").checked){
+        window.setTimeout(()=>{
+            navigator.geolocation.getCurrentPosition(positionListener);
+        },1000);
+    }
+}
+
+function autoPositionListener(p){
+    if(p!=null){
+        displayCurrentPositionMarker(p.coords.latitude, p.coords.longitude);
+    }
+    if(document.getElementById("autoUpdatePosition").checked){
+        window.setTimeout(()=>{
+            navigator.geolocation.getCurrentPosition(autoPositionListener);
+        },1000);
+    }
+}
+
+function displayCurrentPositionMarker(lat,lon){
+    if(currentPostionMarker==null){
+        const icon=L.icon({
+            iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAWRJREFUOE+1VEtSg0AQ7T6A7s1G2HkAXQNewAtY5bD0FBlOAqnyAp4AstYD6AqyyQF0T+vrMNSESgUJsauooufz5vW86cc0CBGJiagcjh9Yt2HmnJkzf45dIiIBEeVEBEBqmm8qig9ar7dUVVsKgovuu6QouiJjbtxW64P6gDURBQ4oy96Pklwub8naO7emYeYQiQKKCEqMwSRJXseq7efBOs/vKY4XGCuYOWX/zsLwRUudEgCt60e3RQEFGZiB4SmB+8zzBJVuFHBqqYcOLcsHLV0BrX2jMRHGmDuRFDBNS30icwLswFIBTxFjeLgT52yAu+f3vGM4R2HH1Cn9P6Kc9dm0bYs+vJ6jtCtXe1lEDFwGLYe7nNl6iTMH2JaZCjowh4qZe0B4IRznz/bllwn73LOvzsIA+vT7b5FDqNXqk5rma89go2ih5gp2XSgzl/QG6zm3QXtDqGOtqM7CbJi58tf9AArJ62Vg0Th6AAAAAElFTkSuQmCC',
+            iconAnchor: [10,10]
+        })
+        currentPostionMarker=L.marker([lat,lon],{icon: icon,zIndexOffset: -1});
+        currentPostionMarker.addTo(map);
+    } else {
+        currentPostionMarker.setLatLng([lat,lon]);
+    }
+}
+
+function autoUpdatePositionClick(e){
+    autoPositionListener(null);
 }
 
 function realTimeClick(e){
@@ -394,6 +431,7 @@ export function initUI(){
     document.getElementById("realTimeCheckbox").addEventListener("click",realTimeClick);
     document.getElementById("warningButton").addEventListener("click",beep);
     document.getElementById("simulationHref").addEventListener("click",simulationModeClick);
+    document.getElementById("autoUpdatePosition").addEventListener("click",autoUpdatePositionClick);
     
     window.addEventListener("resize",updateDisplay);
     window.setTimeout(()=>{

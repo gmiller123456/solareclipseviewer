@@ -1,4 +1,6 @@
 Standalone countdown timer
+Save markers in local storage
+Jitter on penumbra shadow animation
 
 Weather
 Cloud forecast overlay (display % in info list)
@@ -9,5 +11,4 @@ Allow link to location, time, eclipse, etc (and Time Zone)
 Time zone lookup fails after crossing the international date line
 Account for partial limit crossing pole
 Rise and set curves need to account for Earth flattening
-Jitter on penumbra shadow animation
 
