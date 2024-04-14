@@ -27,8 +27,96 @@ function solveQuadrant(sin,cos){
 }
 export function getElementCoeffs(){
     return getElements2024();
+    //return getElements2017();
     //return getElements1994();
     //return getElements1996();
+}
+
+function getElements2017(){
+    const elements={};
+    elements.jd=2457987.5;
+    elements.Δt=69.1;
+    elements.T0=18;
+
+    elements.X0=-0.1295710 ;
+    elements.X1= 0.5406426 ;
+    elements.X2=-0.0000294 ;
+    elements.X3=-0.0000081;
+
+    elements.Y0=0.4854160 ;
+    elements.Y1=-0.1416400;
+    elements.Y2=-0.0000905;
+    elements.Y3= 0.0000020;
+
+    elements.d0=11.8669596;
+    elements.d1=-0.0136220;
+    elements.d2=-0.0000020;
+    elements.d3=0.0000000;
+
+    elements.L10=0.5420930;
+    elements.L11=0.0001241;
+    elements.L12=-0.0000118;
+    elements.L13=0.0000000;
+
+    elements.L20=-0.0040250;
+    elements.L21=0.0001234 ;
+    elements.L22=-0.0000117 ;
+    elements.L23=0.0000000 ;
+
+    elements.M0=89.245430;
+    elements.M1=15.003940;
+    elements.M2=0.000000;
+    elements.M3=0.000000;
+
+    elements.tanf1 = 0.0046222;
+    elements.tanf2 = 0.0045992;
+
+    return elements;
+
+}
+
+function getElements2024_2(){
+    //Agrees closely with
+    //https://ssp.imcce.fr/forms/solar-eclipses/2024-04-08/local-circumstances#map=13.05/38.63866/-85.78188&observer=38.64866465157928/-85.78373848702137
+    const elements={};
+    elements.jd=2460408.5;
+    elements.Δt=69.1;
+    elements.T0=18;
+    
+    elements.X0=-0.3182588;
+    elements.X1=0.5117224;
+    elements.X2=0.0000330;
+    elements.X3=-0.0000085;
+    
+    elements.Y0=0.2197690;
+    elements.Y1=0.2709652;
+    elements.Y2=-0.0000592;
+    elements.Y3=-0.0000047;
+    
+    elements.d0=7.5861809;
+    elements.d1=0.0148443;
+    elements.d2=-0.0000017;
+    elements.d3=0.0000000;
+    
+    elements.L10=0.5357259;
+    elements.L11=0.0000620;
+    elements.L12=-0.0000128;
+    elements.L13=0.0000000;
+    
+    elements.L20=-0.0106071;
+    elements.L21=0.0000617;
+    elements.L22=-0.0000127;
+    elements.L23=0.0000000;
+    
+    elements.M0=89.5912142;
+    elements.M1=15.0040824;
+    elements.M2=-0.0000008;
+    elements.M3=0.0000000;
+    
+    elements.tanf1 = 0.0046663;
+    elements.tanf2 = 0.0046430;
+
+    return elements;
 }
 
 function getElements2024(){
