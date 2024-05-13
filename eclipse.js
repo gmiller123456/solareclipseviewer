@@ -18,7 +18,10 @@ Released as public domain
 const rad=Math.PI/180;
 
 const maxiterations=20;
-    
+
+/*
+ * Determines angle based on both the sin and cos, determining the appropriate quadrant in the process
+ */
 function solveQuadrant(sin,cos){
     if(sin>=0 && cos>=0){return Math.asin(sin);}
     if(sin<0 && cos>=0){return Math.asin(sin);}
@@ -370,6 +373,11 @@ export function getLocalCircumstances(Φ,λ,height){
         h:h, m:m, elements: o};
 }
 
+/*
+ * Determines the maximum eclipse at a given time, including the location and duration of said point
+ *
+ * From Meeus - Elements of Solar Eclipses pages 11-13
+ */
 export function computeCentralLatLonForTime(e,UTC){
     //From Meeus - Elements of Solar Eclipses
     const t=UTC-e.T0;
@@ -426,8 +434,12 @@ export function computeCentralLatLonForTime(e,UTC){
     return {lat: Φ, lon: -λ, magnitude: A, duration: duration, width: width};
 }
 
+/*
+ *
+ * 
+ * From Meeus - Elements of Solar Eclipses
+ */
 function computeExtremes(e,t0){
-    //From Meeus - Elements of Solar Eclipses
     const r={};
     const t=t0;
     r.t=t;
@@ -574,14 +586,36 @@ export function getLatLonEclipseAtNoon(e){
     return {UT: UT, lat: Φ, lon: λ};
 }
 
+/*
+ * Determines the center line at a given longitude for the particular eclipse
+ * Inputs: 
+ * e: Local Circumstances at the given time
+ * λ: Longitude where one wishes to find the center line
+ */
 export function getCenterLineByLongitude(e,λ){
     return getLimitsForLogitude(e,λ,0,1,0);
 }
 
+/*
+ * Determines totality limits for a range of longitudes
+ * Inputs: 
+ * e: Local Circumstances at the given time
+ * northsouth: Degrees north/south
+ * startLon: Start Longitude
+ * endLon: End Longitude
+ */
 export function getTotalityLimitsByLongitudeList(e,northsouth,startLon,endLon){
     return getLimitsByLongitudeAsList(e,northsouth,1,startLon,endLon);
 }
 
+/*
+ * Determines partial limits for a range of longitudes
+ * Inputs: 
+ * e: Local Circumstances at the given time
+ * northsouth: Degrees north/south
+ * startLon: Start Longitude
+ * endLon: End Longitude
+ */
 export function getPartialLimitsByLogitudeList(e,northsouth,startLon,endLon){
     return getLimitsByLongitudeAsList(e,northsouth,0,startLon,endLon);
 }
@@ -765,6 +799,11 @@ function getOutlineCurveQRange(be,l){
     return {start: Q2, end: Q1};
 }
 
+/*
+ * Computes the eclipse outline at a particular time
+ * Input
+ * t: Time, hours (Day of eclipse)
+ */
 export function computeOutlineCurve(t){
     const el=getElementCoeffs();
     const be={};
@@ -818,6 +857,12 @@ export function computeOutlineCurve(t){
     return {umbra: umbra, penumbra: penumbra};
 }
 
+
+/*
+ * Computes the Rise and Set curves of an eclipse
+ * Input
+ * t: Time, hours (Day of eclipse)
+ */
 export function getRiseSetCurves(){
     let t=-3;
     const e=getElementCoeffs();
@@ -994,6 +1039,12 @@ function getGreatestEclipseTime(e){
     return t;
 }
 
+
+/*
+ * Determines the greatest eclipse for the particular elements
+ * Input
+ * elements: Besselian Elements for the eclipse
+ */
 export function getGreatestEclipse(elements){
     const t=getGreatestEclipseTime(elements);
     return(computeCentralLatLonForTime(elements,t+elements.T0));
@@ -1070,6 +1121,11 @@ function getPenumbraStartStopPoints(be){
     
 }
 
+/*
+ * Determines the start and end times for the Penumbra of the given eclipse
+ * Input
+ * elements: Besselian Elements for the given eclipse
+ */
 export function getPenumbraBeginAndEndInfo(elements){
     const times=getPenumbraStartStopTimes(elements);
     const start=getPenumbraStartStopPoints(getElements(elements,times.start,0,0,0));
