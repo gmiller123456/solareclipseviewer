@@ -154,7 +154,7 @@ class MI{
 }
 
 import {getElementCoeffs,getLocalCircumstances} from "./eclipse.js";
-import {computeCentralLatLonForTime, getExtremePoints, getEclipseCenter, getTotalityLimitsByLongitudeList, getPartialLimitsByLogitudeList} from "./eclipse.js";
+import {computeCentralLatLonForTime, getExtremePoints, getEclipseCenter, getTotalityLimitsByLongitudeList, getPartialLimitsByLongitudeList} from "./eclipse.js";
 import {convertTDBToUTC,hoursToTime,prettyTime} from "./astro.js";
 import {drawOverlay} from "./overlay.js";
 
@@ -347,10 +347,10 @@ function computeEclipseData(){
     getTotalityLimitsByLongitudeList(e,-1,startLon,endLon)[0].forEach(el => {if(el!=null) south.push(new L.LatLng(el.lat,el.lon))});
 
     const northP=new Array();
-    getPartialLimitsByLogitudeList(e,1,startLon,endLon)[0].forEach(el => {if(el!=null) northP.push(new L.LatLng(el.lat,el.lon))});
+    getPartialLimitsByLongitudeList(e,1,startLon,endLon)[0].forEach(el => {if(el!=null) northP.push(new L.LatLng(el.lat,el.lon))});
     
     const southP=new Array();
-    getPartialLimitsByLogitudeList(e,-1,startLon,endLon)[0].forEach(el => {if(el!=null) southP.push(new L.LatLng(el.lat,el.lon))});
+    getPartialLimitsByLongitudeList(e,-1,startLon,endLon)[0].forEach(el => {if(el!=null) southP.push(new L.LatLng(el.lat,el.lon))});
 
     const centerPoint=getEclipseCenter(e);
 

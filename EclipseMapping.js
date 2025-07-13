@@ -5,7 +5,7 @@ Released as public domain
 */
 
 import {getElementCoeffs,computeOutlineCurve} from "./eclipse.js";
-import {getPenumbraBeginAndEndInfo,getGreatestEclipse,getRiseSetCurves, computeCentralLatLonForTime, getMaxEclipseAtRiseSetPoints, getExtremePoints, getTotalityLimitsByLongitudeList, getPartialLimitsByLogitudeList} from "./eclipse.js";
+import {getPenumbraBeginAndEndInfo,getGreatestEclipse,getRiseSetCurves, computeCentralLatLonForTime, getMaxEclipseAtRiseSetPoints, getExtremePoints, getTotalityLimitsByLongitudeList, getPartialLimitsByLongitudeList} from "./eclipse.js";
 
 let map;
 let umbraLine=null;
@@ -60,10 +60,10 @@ export function computeEclipseData(map1,workerMessage){
     getTotalityLimitsByLongitudeList(e,-1,startLon,endLon)[0].forEach(el => {if(el!=null) south.push(new L.LatLng(el.lat,el.lon))});
 
     const northP=new Array();
-    getPartialLimitsByLogitudeList(e,1,limits.nStart,limits.nEnd)[0].forEach(el => {if(el!=null) northP.push(new L.LatLng(el.lat,el.lon))});
+    getPartialLimitsByLongitudeList(e,1,limits.nStart,limits.nEnd)[0].forEach(el => {if(el!=null) northP.push(new L.LatLng(el.lat,el.lon))});
     
     const southP=new Array();
-    getPartialLimitsByLogitudeList(e,-1,limits.sStart,limits.sEnd)[0].forEach(el => {if(el!=null) southP.push(new L.LatLng(el.lat,el.lon))});
+    getPartialLimitsByLongitudeList(e,-1,limits.sStart,limits.sEnd)[0].forEach(el => {if(el!=null) southP.push(new L.LatLng(el.lat,el.lon))});
 
     computeGreatestEclipse();
     const pi=computePenumbraExtremeInfo();
