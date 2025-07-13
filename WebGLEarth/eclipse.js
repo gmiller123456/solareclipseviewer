@@ -467,14 +467,14 @@ export function getEclipseCenter(e){
 }
 
 export function getCenterLineByLongitude(e,λ){
-    return getLimitsForLogitude(e,λ,0,1,0);
+    return getLimitsForLongitude(e,λ,0,1,0);
 }
 
 export function getTotalityLimitsByLongitudeList(e,northsouth,startLon,endLon){
     return getLimitsByLongitudeAsList(e,northsouth,1,startLon,endLon);
 }
 
-export function getPartialLimitsByLogitudeList(e,northsouth,startLon,endLon){
+export function getPartialLimitsByLongitudeList(e,northsouth,startLon,endLon){
     return getLimitsByLongitudeAsList(e,northsouth,0,startLon,endLon);
 }
 
@@ -483,8 +483,8 @@ function getLimitsByLongitudeAsList(e,northsouth,G,startLon,endLon){
     const polarPoints=new Array();
 
     for(let i=startLon;i<=endLon;i+=.01){
-        const eq=getLimitsForLogitude(e,i,northsouth,G,0);
-        const polar=getLimitsForLogitude(e,i,northsouth,G,89.9 * Math.sign(e.Y0));
+        const eq=getLimitsForLongitude(e,i,northsouth,G,0);
+        const polar=getLimitsForLongitude(e,i,northsouth,G,89.9 * Math.sign(e.Y0));
 
         if(polar!=null  && eq!=null){
             if(Math.abs(eq.lat-polar.lat)<.1){
@@ -502,7 +502,7 @@ function getLimitsByLongitudeAsList(e,northsouth,G,startLon,endLon){
     return [eqPoints,polarPoints];
 }
 
-function getLimitsForLogitude(e,λ,northsouth,G,startΦ){
+function getLimitsForLongitude(e,λ,northsouth,G,startΦ){
 
     let t=0;
     let Φ=startΦ;
